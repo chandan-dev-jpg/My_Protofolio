@@ -1,0 +1,143 @@
+
+import { useState } from "react";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+
+const Loader = () => {
+  const [progress, setProgress] = useState(0);
+
+  const [loading, setLoading] = useState(() => {
+    return !sessionStorage.getItem("portfolio-loader-shown");
+  });
+
+  useGSAP(() => {
+    // Don't run animation if loader was already shown
+    if (!loading) return;
+
+    const progressObj = { value: 0 };
+
+    const tl = gsap.timeline();
+
+    // =================================
+    // PROGRESS 0 → 100
+    // =================================
+
+    tl.to(progressObj, {
+      value: 100,
+      duration: 2.5,
+      ease: "power2.out",
+
+      onUpdate: () => {
+        setProgress(Math.floor(progressObj.value));
+      },
+    })
+
+      // =================================
+      // SMALL PAUSE
+      // =================================
+
+      .to({}, {
+        duration: 0.3,
+      })
+
+      // =================================
+      // LOADER EXIT
+      // =================================
+
+      .to(".loader", {
+        yPercent: -100,
+        duration: 1,
+        ease: "power4.inOut",
+
+        onComplete: () => {
+          sessionStorage.setItem(
+            "portfolio-loader-shown",
+            "true"
+          );
+
+          setLoading(false);
+        },
+      });
+
+    // Cleanup
+    return () => {
+      tl.kill();
+    };
+  }, [loading]);
+
+  // Don't render loader after first visit
+  if (!loading) {
+    return null;
+  }
+
+  return (
+    <div
+      className="
+        loader
+        fixed
+        inset-0
+        z-9999
+        flex
+        flex-col
+        items-center
+        justify-center
+        bg-[#F8F5F0]
+      "
+    >
+      {/* Percentage */}
+
+      <h2
+        className="
+          mb-4
+          font-[MangoGro]
+          text-4xl
+          font-bold
+          text-black
+        "
+      >
+        {progress}%
+      </h2>
+
+      {/* Creator */}
+
+      <h1
+        className="
+          text-3xl
+          mb-5
+          font-semibold
+          text-black
+          text-center
+          px-10
+          font-[MangoGro]
+          tracking-wide
+        "
+      >
+        Created By Chandan Behera
+      </h1>
+
+      {/* Progress Bar */}
+
+      <div
+        className="
+          h-2
+          w-80
+          overflow-hidden
+          rounded-full
+          bg-black/10
+        "
+      >
+        <div
+          className="
+            h-full
+            bg-[#B58A3C]
+          "
+          style={{
+            width: `${progress}%`,
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default Loader;
